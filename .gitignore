@@ -1,0 +1,39 @@
+# WordPress Factory .gitignore
+
+# Environment
+.env
+.env.local
+
+# WordPress core (never commit WP core)
+wordpress/
+
+# Uploads and media (state lives in server)
+uploads/
+
+# Database dumps (sensitive)
+*.sql
+*.sql.gz
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build artifacts
+dist/
+build/
+
+# Playground data
+playground/.wordpress-playground/
+
+# Chrome profile (NotebookLM)
+chrome-profile/

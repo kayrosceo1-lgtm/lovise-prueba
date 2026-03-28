@@ -1,0 +1,35 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "landingPage": "/",
+  "phpVersion": "8.2",
+  "wpVersion": "latest",
+  "features": {
+    "networking": true
+  },
+  "steps": [
+    {
+      "step": "mkdir",
+      "path": "/wordpress/wp-content/themes/wpf-starter"
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/themes/wpf-starter/style.css",
+      "data": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/theme/style.css"
+      }
+    },
+    {
+      "step": "setSiteOptions",
+      "options": {
+        "blogname": "WPF Preview",
+        "blogdescription": "WordPress Factory Preview",
+        "show_on_front": "page"
+      }
+    },
+    {
+      "step": "activateTheme",
+      "themeFolderName": "wpf-starter"
+    }
+  ]
+}

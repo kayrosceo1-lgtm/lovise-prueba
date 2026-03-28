@@ -1,0 +1,104 @@
+name: Deploy to EasyPanel Staging
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'theme/**'
+      - 'plugins/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate theme.json
+        run: python -m json.tool theme/theme.json > /dev/null
+
+      - name: Check required files
+        run: |
+          test -f theme/style.css || (echo "Missing style.css" && exit 1)
+          test -f theme/theme.json || (echo "Missing theme.json" && exit 1)
+          test -f theme/templates/index.html || (echo "Missing templates/index.html" && exit 1)
+          echo "Theme structure valid"
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy theme via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EASYPANEL_HOST }}
+          username: ${{ secrets.EASYPANEL_SSH_USER }}
+          key: ${{ secrets.EASYPANEL_SSH_KEY }}
+          script: |
+            # Find the WordPress container
+            CONTAINER=$(docker ps --filter "name=wordpress" --format "{{.Names}}" | head -1)
+
+            if [ -z "$CONTAINER" ]; then
+              echo "WordPress container not found!"
+              exit 1
+            fi
+
+            # Create temp directory and sync theme
+            THEME_DIR="/tmp/wpf-deploy-$(date +%s)"
+            mkdir -p "$THEME_DIR"
+
+            echo "Deploying theme to container: $CONTAINER"
+
+      - name: Sync theme files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EASYPANEL_HOST }}
+          username: ${{ secrets.EASYPANEL_SSH_USER }}
+          key: ${{ secrets.EASYPANEL_SSH_KEY }}
+          source: "theme/*"
+          target: "/tmp/wpf-theme-deploy"
+          strip_components: 0
+
+      - name: Copy to WordPress container
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EASYPANEL_HOST }}
+          username: ${{ secrets.EASYPANEL_SSH_USER }}
+          key: ${{ secrets.EASYPANEL_SSH_KEY }}
+          script: |
+            CONTAINER=$(docker ps --filter "name=wordpress" --format "{{.Names}}" | head -1)
+            THEME_SLUG=$(grep "Text Domain:" /tmp/wpf-theme-deploy/theme/style.css | sed 's/.*Text Domain: //' | tr -d '[:space:]')
+
+            if [ -z "$THEME_SLUG" ]; then
+              THEME_SLUG="wpf-starter"
+            fi
+
+            # Copy theme into container
+            docker cp /tmp/wpf-theme-deploy/theme/. "$CONTAINER:/var/www/html/wp-content/themes/$THEME_SLUG/"
+
+            # Activate theme
+            docker exec "$CONTAINER" wp theme activate "$THEME_SLUG" --allow-root 2>/dev/null || true
+
+            # Flush rewrite rules
+            docker exec "$CONTAINER" wp rewrite flush --allow-root 2>/dev/null || true
+
+            # Cleanup
+            rm -rf /tmp/wpf-theme-deploy
+
+            echo "Theme '$THEME_SLUG' deployed and activated!"
+
+      - name: Deploy plugins (if any)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EASYPANEL_HOST }}
+          username: ${{ secrets.EASYPANEL_SSH_USER }}
+          key: ${{ secrets.EASYPANEL_SSH_KEY }}
+          script: |
+            if [ -d "/tmp/wpf-theme-deploy/plugins" ] && [ "$(ls -A /tmp/wpf-theme-deploy/plugins 2>/dev/null)" ]; then
+              CONTAINER=$(docker ps --filter "name=wordpress" --format "{{.Names}}" | head -1)
+              docker cp /tmp/wpf-theme-deploy/plugins/. "$CONTAINER:/var/www/html/wp-content/plugins/"
+              echo "Plugins deployed!"
+            else
+              echo "No custom plugins to deploy."
+            fi
