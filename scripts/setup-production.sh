@@ -23,13 +23,27 @@ NC='\033[0m'
 log() { echo -e "${GREEN}[LOVISE]${NC} $1"; }
 warn() { echo -e "${YELLOW}[LOVISE]${NC} $1"; }
 
-# Verificar que estamos en el directorio correcto
-if [ ! -f /var/www/html/wp-config.php ]; then
+# Auto-detectar directorio de WordPress
+WP_DIR=""
+for dir in /var/www/html /code /var/www /app; do
+    if [ -f "$dir/wp-config.php" ]; then
+        WP_DIR="$dir"
+        break
+    fi
+done
+
+if [ -z "$WP_DIR" ]; then
+    # Buscar en todo el sistema como último recurso
+    WP_DIR=$(find / -name "wp-config.php" -maxdepth 4 2>/dev/null | head -1 | xargs dirname 2>/dev/null)
+fi
+
+if [ -z "$WP_DIR" ]; then
     echo "ERROR: No se encontró wp-config.php. Ejecuta este script dentro del contenedor WordPress."
     exit 1
 fi
 
-cd /var/www/html
+log "WordPress encontrado en: $WP_DIR"
+cd "$WP_DIR"
 
 # ============================================================================
 # 1. INSTALAR Y CONFIGURAR WOOCOMMERCE
@@ -157,7 +171,7 @@ log "Categorías creadas: Skinny, Mom, Levanta Cola, Wide Leg, Palazzo"
 # ============================================================================
 log "Descargando imágenes para productos y colecciones..."
 
-UPLOADS_DIR="/var/www/html/wp-content/uploads/lovise"
+UPLOADS_DIR="$WP_DIR/wp-content/uploads/lovise"
 mkdir -p "$UPLOADS_DIR"
 
 download_image() {
