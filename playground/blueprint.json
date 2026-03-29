@@ -8,28 +8,44 @@
   },
   "steps": [
     {
-      "step": "mkdir",
-      "path": "/wordpress/wp-content/themes/wpf-starter"
+      "step": "installPlugin",
+      "pluginData": {
+        "resource": "wordpress.org/plugins",
+        "slug": "woocommerce"
+      }
     },
     {
-      "step": "writeFile",
-      "path": "/wordpress/wp-content/themes/wpf-starter/style.css",
-      "data": {
+      "step": "installTheme",
+      "themeData": {
         "resource": "url",
-        "url": "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/theme/style.css"
+        "url": "https://github.com/YOUR_USERNAME/YOUR_REPO/archive/refs/heads/main.zip",
+        "caption": "Instalando tema LOVISE..."
       }
     },
     {
       "step": "setSiteOptions",
       "options": {
-        "blogname": "WPF Preview",
-        "blogdescription": "WordPress Factory Preview",
-        "show_on_front": "page"
+        "blogname": "LOVISE",
+        "blogdescription": "Encuentra tu silueta perfecta",
+        "show_on_front": "page",
+        "WPLANG": "es_ES"
       }
     },
     {
       "step": "activateTheme",
-      "themeFolderName": "wpf-starter"
+      "themeFolderName": "lovise"
+    },
+    {
+      "step": "activatePlugin",
+      "pluginPath": "woocommerce/woocommerce.php"
+    },
+    {
+      "step": "runPHP",
+      "code": "<?php require_once '/wordpress/wp-load.php'; $home = wp_insert_post(array('post_title' => 'Inicio', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'page', 'page_template' => 'home')); update_option('page_on_front', $home); $tienda = wp_insert_post(array('post_title' => 'Tienda', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'page')); update_option('woocommerce_shop_page_id', $tienda); $cart = wp_insert_post(array('post_title' => 'Carrito', 'post_content' => '<!-- wp:woocommerce/cart /-->', 'post_status' => 'publish', 'post_type' => 'page', 'page_template' => 'page-cart')); update_option('woocommerce_cart_page_id', $cart); $checkout = wp_insert_post(array('post_title' => 'Finalizar compra', 'post_content' => '<!-- wp:woocommerce/checkout /-->', 'post_status' => 'publish', 'post_type' => 'page', 'page_template' => 'page-checkout')); update_option('woocommerce_checkout_page_id', $checkout); $account = wp_insert_post(array('post_title' => 'Mi Cuenta', 'post_content' => '[woocommerce_my_account]', 'post_status' => 'publish', 'post_type' => 'page', 'page_template' => 'page-my-account')); update_option('woocommerce_myaccount_page_id', $account); wp_insert_post(array('post_title' => 'Sobre LOVISE', 'post_content' => '<p>LOVISE nació de una búsqueda personal: encontrar pantalones que combinaran un fit impecable con calidad duradera y una estética sofisticada. Cada pieza está pensada para mujeres que valoran los detalles, la comodidad y un estilo que habla sin gritar.</p><p>Nuestro compromiso es ofrecer prendas que te hagan sentir extraordinaria, con materiales seleccionados cuidadosamente, costuras que duran y un diseño que trasciende las tendencias pasajeras.</p>', 'post_status' => 'publish', 'post_type' => 'page', 'page_template' => 'page-about')); wp_insert_post(array('post_title' => 'Contacto', 'post_content' => '<p>¿Tienes alguna pregunta? Escríbenos y te responderemos lo antes posible.</p>', 'post_status' => 'publish', 'post_type' => 'page', 'page_template' => 'page-contact')); wp_insert_post(array('post_title' => 'Preguntas Frecuentes', 'post_content' => '<!-- wp:pattern {\"slug\":\"lovise/faq-section\"} /-->', 'post_status' => 'publish', 'post_type' => 'page', 'page_template' => 'page-faq')); wp_insert_post(array('post_title' => 'Guía de Tallas', 'post_content' => '<!-- wp:pattern {\"slug\":\"lovise/size-guide\"} /-->', 'post_status' => 'publish', 'post_type' => 'page')); wp_insert_post(array('post_title' => 'Envíos y Devoluciones', 'post_content' => '<h2>Envíos</h2><p>Realizamos envíos a todo el país. Los pedidos superiores a $150.000 tienen envío gratis.</p><h3>Tiempos de entrega</h3><ul><li>Ciudad principal: 1-3 días hábiles</li><li>Resto del país: 3-7 días hábiles</li></ul><h2>Devoluciones</h2><p>Aceptamos devoluciones dentro de los primeros 15 días desde la entrega. La prenda debe estar sin uso, con etiquetas y en su empaque original.</p>', 'post_status' => 'publish', 'post_type' => 'page')); wp_insert_post(array('post_title' => 'Términos y Condiciones', 'post_content' => '<p>Estos términos y condiciones regulan el uso del sitio web LOVISE y las compras realizadas a través del mismo.</p>', 'post_status' => 'publish', 'post_type' => 'page')); wp_insert_post(array('post_title' => 'Política de Privacidad', 'post_content' => '<p>En LOVISE nos tomamos muy en serio la protección de tus datos personales.</p>', 'post_status' => 'publish', 'post_type' => 'page')); ?>"
+    },
+    {
+      "step": "runPHP",
+      "code": "<?php require_once '/wordpress/wp-load.php'; $cats = array('Skinny Jeans' => 'La silueta ceñida que estiliza y define', 'Mom Jeans' => 'Comodidad relajada con tiro alto favorecedor', 'Levanta Cola' => 'Diseño que realza y modela tu silueta', 'Wide Leg' => 'Pierna amplia con caída elegante', 'Palazzo' => 'Fluidez y movimiento en cada paso'); foreach ($cats as $name => $desc) { wp_insert_term($name, 'product_cat', array('description' => $desc, 'slug' => sanitize_title($name))); } $products = array(array('Jean Skinny Noir', 189900, 'skinny-jeans', 'Jean skinny de tiro alto en negro intenso. Denim premium con stretch para acompañar tu movimiento sin perder la forma.'), array('Mom Jean Clásico', 179900, 'mom-jeans', 'Tiro alto, cintura ceñida y pierna relajada. El mom jean que nunca pasa de moda, en denim lavado suave.'), array('Levanta Cola Premium', 199900, 'levanta-cola', 'Nuestro best seller. Diseño patentado que realza y modela tu silueta con la comodidad del denim stretch.'), array('Wide Leg Crudo', 209900, 'wide-leg', 'Pierna amplia con caída elegante en tono crudo natural. Perfecto para looks sofisticados de día y noche.'), array('Palazzo Fluido', 219900, 'palazzo', 'Cintura alta con pierna ultra wide. Tela fluida que se mueve contigo, ideal para crear looks editorial.'), array('Skinny Push Up', 194900, 'skinny-jeans', 'Tecnología push up combinada con el fit skinny. Efecto levanta cola en silueta ceñida.'), array('Mom Jean Vintage', 184900, 'mom-jeans', 'Lavado vintage con detalles de desgaste sutil. El mom jean con personalidad que buscabas.'), array('Jean Recto Clásico', 174900, 'wide-leg', 'Pierna recta atemporal. El jean que combina con todo, en denim de peso medio con excelente caída.')); foreach ($products as $p) { $id = wp_insert_post(array('post_title' => $p[0], 'post_content' => '<p>' . $p[3] . '</p>', 'post_excerpt' => $p[3], 'post_status' => 'publish', 'post_type' => 'product')); if ($id) { update_post_meta($id, '_regular_price', $p[1] / 100); update_post_meta($id, '_price', $p[1] / 100); update_post_meta($id, '_stock_status', 'instock'); wp_set_object_terms($id, $p[2], 'product_cat'); wp_set_object_terms($id, 'simple', 'product_type'); } } ?>"
     }
   ]
 }

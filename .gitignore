@@ -32,6 +32,15 @@ desktop.ini
 dist/
 build/
 
+# ZIP files (packaged themes, third-party)
+*.zip
+
+# Extracted third-party themes
+phlox-extracted/
+
+# Temp notes
+greedy-cuddling-blossom.md
+
 # Playground data
 playground/.wordpress-playground/
 
